@@ -9,3 +9,18 @@ html, body {
 	margin: 0;
 	padding: 0;
 }
+
+.left-top, .left-bottom, .right-top, .right-bottom {
+	position: absolute;
+	top: 0;
+	width: 50vh;
+	height: 50vh;
+	background-color: #a3c2bd;
+}
+.left-bottom { top: 50vh; }
+.right-top, .right-bottom { right: 0; }
+.right-bottom { top: 50vh; }
+
+.left-top img, .left-bottom img, .right-top img, .right-bottom img {
+	display:table-cell; width: 50vh;
+}

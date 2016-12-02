@@ -1,11 +1,12 @@
-// This example requires the Google Maps Places library.
-// Include the libraries=places 
+// This example requires the Google Maps Places and Geometry library.
+// Include the libraries=places,geometry
 // parameter when you first load the API.
+var useLocalDatasources = true;
 
 var map;
 var infowindow;
 
-// Filter out types we don't care for, see
+// Filter out GMap places types we don't care for, see
 // https://developers.google.com/places/supported_types
 var ignorePlacesTypes = [
 	'food', 'lodging', 'store', 'doctor', 'lawyer'
@@ -14,21 +15,48 @@ var startLocation = { // Schaubühne Berlin
 	lat : 52.498478,
 	lng : 13.303511
 };
+var cityCntr = { lat: 52.506704, lng: 13.390324 }; // Berlin city center
 
+/** The main app function, invoked by google maps js as soon as its loaded */
 function initMap() {
 	map = new google.maps.Map(document.getElementById('map'), {
 		center : startLocation,
 		zoom : 15
 	});
-	infowindow = new google.maps.InfoWindow();
+	infowindow = new google.maps.InfoWindow(); // For showing popups
 	var queryLocation = new google.maps.LatLng(52.488529642618275, 13.355426788330078);
-	queryChargingStations(queryLocation, function cbChrgStations(stationData) {
+	// Search for the farthest carsharing car from the city center
+	queryCarsharing(function cbAvailCars(cars) {
+		var cityCntrLatLng = new google.maps.LatLng(cityCntr.lat, cityCntr.lng);
+		// Sort the station data by distance from the city center
+		$.each(cars, function() {
+			var carLatLng = new google.maps.LatLng(this.location.latitude, this.location.longitude);
+			this.dist = google.maps.geometry.spherical.computeDistanceBetween(cityCntrLatLng, carLatLng);
+		});
+		cars.sort(function(a, b) { // Sort by largest distance first
+			return b.dist - a.dist;
+		});
+		var chosenCar = cars[0];
+		var carLoc = new google.maps.LatLng(chosenCar.location.latitude, chosenCar.location.longitude);
+		var marker = new google.maps.Marker({
+			map : map,
+			position : carLoc
+		});
+		google.maps.event.addListener(marker, 'click', function() {
+			infowindow.setContent(chosenCar.value.vehicle.providerName + ': ' + chosenCar.value.vehicle.license);
+			infowindow.open(map, this);
+		});
+	});
+	// Search for charging stations near our query location
+	// use the closest charging station to display a route and query
+	// for POIs to show on the map
+	queryAvailChargingStations(queryLocation, function cbChrgStations(stationData) {
 		// Sort the station data by distance from our queryLocation
 		$.each(stationData, function() {
 			var stLatLng = new google.maps.LatLng(this.location.coordinates[1], this.location.coordinates[0]);
 			this.dist = google.maps.geometry.spherical.computeDistanceBetween(queryLocation, stLatLng);
 		})
-		stationData.sort(function(a, b) {
+		stationData.sort(function(a, b) { // Sort by shortest distance first
 			return a.dist - b.dist;
 		});
 		// Select the nearest station and calculate bounds for the map
@@ -41,27 +69,30 @@ function initMap() {
 		// Calculate and display the route to the charging stations
 		calcRoute(map, dstLatLng);
 		// Query and display interesting places around the charging station
-		queryPlaces(map, dstLatLng);
+		function createMarkers(places) {
+			$.each(places, function(idx, place){
+				var placeLoc = place.geometry.location;
+				var marker = new google.maps.Marker({
+					map : map,
+					position : place.geometry.location
+				});
+				google.maps.event.addListener(marker, 'click', function() {
+					infowindow.setContent(place.name + ' rating: ' + place.rating);
+					infowindow.open(map, this);
+				});
+			})
+		}
+		queryPlaces(map, dstLatLng, createMarkers);
 	});
 }
 
-function queryPlaces(map, latLng) {
+/** Queries GMaps for nearby places, filtering them and fetches their details,
+ * then draws them on the map */
+function queryPlaces(map, latLng, cbBestPlaces) {
 	var service = new google.maps.places.PlacesService(map);
 	var dtlReqPlaces = []; // Places we requested details for, to detect when we are done with all the requests
 	var dtlPlaces = []; // The results of the detail queries
-	function createMarkers(places) {
-		$.each(places, function(idx, place){
-			var placeLoc = place.geometry.location;
-			var marker = new google.maps.Marker({
-				map : map,
-				position : place.geometry.location
-			});
-			google.maps.event.addListener(marker, 'click', function() {
-				infowindow.setContent(place.name + ' rating: ' + place.rating);
-				infowindow.open(map, this);
-			});
-		})
-	}
+
 	function cbDtlSrch(place, status) {
 		dtlPlaces.push(place);
 		if (status == google.maps.places.PlacesServiceStatus.OK) {
@@ -75,7 +106,7 @@ function queryPlaces(map, latLng) {
 			dtlPlaces.sort(function(a, b) { // Sort by rating, remove places without one
 				return a.rating - b.rating;
 			}).filter(function() { return this.rating ? true : false; });
-			createMarkers(dtlPlaces);
+			cbBestPlaces(dtlPlaces);
 		}
 	}
 	function cbNbSrch(results, status) {
@@ -119,17 +150,7 @@ function queryPlaces(map, latLng) {
 var directionsDisplay;
 var directionsService;
 
-//function calcDirections() {
-//	directionsDisplay = new google.maps.DirectionsRenderer();
-//	var chicago = new google.maps.LatLng(41.850033, -87.6500523);
-//	var mapOptions = {
-//		zoom:7,
-//		center: chicago
-//	}
-//	map = new google.maps.Map(document.getElementById('map'), mapOptions);
-//	directionsDisplay.setMap(map);
-//}
-
+/** Calculates and displays the route from startLocation to the given destination */
 function calcRoute(map, destLatLng) {
 	directionsService = directionsService ? directionsService : new google.maps.DirectionsService();
 	directionsDisplay = directionsDisplay ? directionsDisplay : new google.maps.DirectionsRenderer();
@@ -145,7 +166,7 @@ function calcRoute(map, destLatLng) {
 	directionsService.route(request, function(result, status) {
 		if (status == 'OK') {
 //			var opts = { polylineOptions: {strokeColor: '#47d447'} };
-//			directionsDisplay2.setOptions(opts);
+//			directionsDisplay.setOptions(opts);
 			directionsDisplay.setDirections(result);
 			console.log('directions', result);
 			var route = result.routes[0];
@@ -155,7 +176,8 @@ function calcRoute(map, destLatLng) {
 	});
 }
 
-function queryChargingStations(latLng, cbAvailStations) {
+/** Queries the charging infrastructure service from http://www.be-emobil.de/ladestationen/ for charging stations */
+function queryAvailChargingStations(latLng, cbAvailStations) {
 	var chrgApiUrl = 'https://api.charging-infrastructure.viz.berlin/lbs';
 	var allStations = [];
 	var availStations = [];
@@ -171,4 +193,22 @@ function queryChargingStations(latLng, cbAvailStations) {
 			});
 		});
 	});
+}
+
+/** Queries the available charsharing cars from Multicity */
+function queryCarsharing(cbAvailCars) {
+	function dataCb(data) {
+		data = data.query.results.json.json;
+		cbAvailCars(data);
+	}
+	if(useLocalDatasources) {
+		$.getJSON("multicity.json", dataCb);
+		return;
+	}
+	var crshrgUrl = 'https://www.multicity-carsharing.de/_denker-mc.php';
+	// Need to use a proxy, as there are no Cors headers on the original HTTP
+	$.getJSON("http://query.yahooapis.com/v1/public/yql",{
+			q: 'select * from json where url="' + crshrgUrl + '"',
+			format: "json"
+	}, dataCb);
 }
