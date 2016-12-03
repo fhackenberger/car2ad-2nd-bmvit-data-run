@@ -8,9 +8,11 @@ html, body {
 	height: 100%;
 	margin: 0;
 	padding: 0;
+	font-family: 'Lato', sans-serif;
+	font-weight: 300;
 }
 
-.left-top, .left-bottom, .right-top, .right-bottom {
+.info-box {
 	position: absolute;
 	top: 0;
 	width: 50vh;
@@ -20,7 +22,57 @@ html, body {
 .left-bottom { top: 50vh; }
 .right-top, .right-bottom { right: 0; }
 .right-bottom { top: 50vh; }
+.right-top, .left-top {
+	background-color: white;
+}
+.info-box img {
+	display:table-cell;
+	width: 50vh;
+}
+.info-box .text {
+	color: white;
+	line-height: 50vh;
+	text-align: center;
+}
+.big {
+	font-size: 30vh;
+}
+.poi-image {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	background-size: cover;
+	background-position: 50% 50%;
+	margin-left: 50vh;
+	margin-right: 50vh;
+}
+.poi-title {
+	position: absolute;
+	bottom: 0; left: 50vh; right: 50vh;
+	padding: 5vh;
+	font-size: 20vh;
+	color: white;
+	background-color: rgba(128, 128, 128, 0.58);
+}
+.poi-icon {
+	
+	padding: 10vh;
+	box-sizing: border-box;
+}
 
-.left-top img, .left-bottom img, .right-top img, .right-bottom img {
-	display:table-cell; width: 50vh;
+/* XXX downloaded manually to be independent from inet access
+@import 'https://fonts.googleapis.com/css?family=Lato:100,300'; */
+@font-face {
+	font-family: 'Lato';
+	font-style: normal;
+	font-weight: 100;
+	src: local('Lato Hairline'), local('Lato-Hairline'), url(assets/zJY4gsxBiSo5L7tNutxFNg.ttf) format('truetype');
+}
+@font-face {
+	font-family: 'Lato';
+	font-style: normal;
+	font-weight: 300;
+	src: local('Lato Light'), local('Lato-Light'), url(assets/nj47mAZe0mYUIySgfn0wpQ.ttf) format('truetype');
 }

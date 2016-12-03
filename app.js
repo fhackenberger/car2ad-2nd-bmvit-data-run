@@ -70,7 +70,7 @@ function initMap() {
 		calcRoute(map, dstLatLng);
 		// Query and display interesting places around the charging station
 		function createMarkers(places) {
-			$.each(places, function(idx, place){
+			$.each(places, function(idx, place) {
 				var placeLoc = place.geometry.location;
 				var marker = new google.maps.Marker({
 					map : map,
@@ -80,9 +80,41 @@ function initMap() {
 					infowindow.setContent(place.name + ' rating: ' + place.rating);
 					infowindow.open(map, this);
 				});
-			})
+			});
 		}
-		queryPlaces(map, dstLatLng, createMarkers);
+		function showPlacesRoundRobin(places) {
+			var placeIdx = 0;
+			setInterval(function roundRobinPlaces() {
+				var place = places[placeIdx];
+				var placeLoc = place.geometry.location;
+				var marker = new google.maps.Marker({
+					map : map,
+					position : place.geometry.location
+				});
+				var photoUrl = '';
+				var photoDim = {'maxWidth': 1280, 'maxHeight': 720};
+				if(place.photos && place.photos.length) {
+					var maxPixel = 0;
+					var maxPixelIdx = -1;
+					$.each(place.photos, function(idx) {
+						if((this.width * this.height) > maxPixel) {
+							maxPixelIdx = idx;
+							maxPixel = this.width * this.height;
+						}
+					});
+					photoUrl = place.photos[maxPixelIdx].getUrl(photoDim);
+				}
+				$('#poiImage').css('background-image', 'url(' + photoUrl + ')');
+				$('#poiTitle').text(place.name.replace(/ GmbH| UG| AG/, '')); // Remove useless suffixes
+				$('#poiIcon').attr('src', place.icon);
+				placeIdx++; // Round robin fashion
+				if(placeIdx >= places.length)
+					placeIdx = 0;
+			}, 3000);
+
+		}
+//		queryPlaces(map, dstLatLng, createMarkers);
+		queryPlaces(map, dstLatLng, showPlacesRoundRobin);
 	});
 }
 
@@ -105,7 +137,9 @@ function queryPlaces(map, latLng, cbBestPlaces) {
 		if(dtlPlaces.length === dtlReqPlaces.length) { // See if we are done
 			dtlPlaces.sort(function(a, b) { // Sort by rating, remove places without one
 				return a.rating - b.rating;
-			}).filter(function() { return this.rating ? true : false; });
+			}).filter(function() {
+				return this.rating > 3.9 ? true : false;
+			});
 			cbBestPlaces(dtlPlaces);
 		}
 	}
@@ -172,6 +206,7 @@ function calcRoute(map, destLatLng) {
 			var route = result.routes[0];
 			var leg = route.legs[0];
 			console.log('distance ' + leg.distance.text + ' driving time: ' + leg.duration.text);
+			$('#distTime').text((Math.round(leg.duration.value / 60)).toFixed(0));
 		}
 	});
 }
@@ -202,7 +237,7 @@ function queryCarsharing(cbAvailCars) {
 		cbAvailCars(data);
 	}
 	if(useLocalDatasources) {
-		$.getJSON("multicity.json", dataCb);
+		$.getJSON("cached-data/multicity.json", dataCb);
 		return;
 	}
 	var crshrgUrl = 'https://www.multicity-carsharing.de/_denker-mc.php';
