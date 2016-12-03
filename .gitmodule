@@ -1,0 +1,3 @@
+[submodule "BMVIDataRun2016"]
+	path = BMVIDataRun2016
+	url = https://github.com/OpenChargingCloud/BMVIDataRun2016.git
