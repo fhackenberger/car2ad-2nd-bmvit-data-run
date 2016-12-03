@@ -15,6 +15,7 @@ html, body {
 	font-family: 'Lato', sans-serif;
 	font-weight: 300;
 }
+
 .pt-perspective {
 	height: 100%;
 }
@@ -46,30 +47,35 @@ html, body {
 }
 .poi-image {
 	position: absolute;
+	width: 100%;
+	box-sizing: border-box;
 	top: 0;
 	bottom: 0;
 	left: 0;
-	right: 0;
 	background-size: cover;
 	background-position: 50% 50%;
-	margin-left: 50vh;
-	margin-right: 50vh;
+	padding-left: 50vh;
+	padding-right: 50vh;
 }
 .poi-title {
 	position: absolute;
-	bottom: 0; left: 0; right: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	margin: 0 50vh;
 	padding: 0 5vh;
 	font-size: 20vh;
 	color: white;
 	background-color: rgba(128, 128, 128, 0.58);
+	box-sizing: border-box;
 }
 .poi-icon {
-	
-	padding: 10vh;
+	padding: 15vh;
 	box-sizing: border-box;
 }
 
-// Page animations
+/* Page animations from http://tympanus.net/Development/PageTransitions/ */
+/*//////////////////////////////////////////////////////////////////////*/
 .pt-perspective {
 	position: relative;
 	width: 100%;
@@ -121,6 +127,9 @@ html, body {
 @keyframes moveFromBottomFade {
 	from { opacity: 0.3; -webkit-transform: translateY(100%); transform: translateY(100%); }
 }
+
+/* Fonts */
+/*//////////////////////////////////////////////////////////////////////*/
 
 /* XXX downloaded manually to be independent from inet access
 @import 'https://fonts.googleapis.com/css?family=Lato:100,300'; */
