@@ -7,9 +7,12 @@
 </head>
 <body>
 
-<div id="map"></div>
-
-<div class="poi-image" id="poiImage"></div>
+<div class="pt-perspective">
+	<div class="pt-page pt-page-current" id="map"></div>
+	<div class="pt-page poi-image" id="poiImage">
+		<div class="poi-title" id="poiTitle"></div>
+	</div>
+</div>
 
 <div class="left-top info-box">
 	<img src="assets/das Auto.png">
@@ -28,10 +31,10 @@
 <!-- 	<div>P</div> -->
 </div>
 
-<div class="poi-title" id="poiTitle"></div>
 
 <script src="app.js"></script>
 <script src="jquery-3.1.1.min.js"></script>
+<script src="modernizr-2.8.3.min.js"></script>
 <!-- Replace the value of the key parameter with your own API key. -->
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAfH8eKy1eYsgnCzlD502N0dGQvC4ppffI&libraries=places,geometry&callback=initMap" async defer></script>
 <!-- <script src="gmaps-api.js" async defer></script> -->

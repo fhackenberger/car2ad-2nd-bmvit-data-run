@@ -2,6 +2,10 @@
 #map {
 	height: 100%;
 }
+/* XXX A crude hack to make the map a bit greyed out */
+#map .gm-style > div > div > div > *[aria-hidden="true"] {
+	opacity: 0.4;
+}
 
 /* Optional: Makes the sample page fill the window. */
 html, body {
@@ -10,6 +14,9 @@ html, body {
 	padding: 0;
 	font-family: 'Lato', sans-serif;
 	font-weight: 300;
+}
+.pt-perspective {
+	height: 100%;
 }
 
 .info-box {
@@ -50,8 +57,8 @@ html, body {
 }
 .poi-title {
 	position: absolute;
-	bottom: 0; left: 50vh; right: 50vh;
-	padding: 5vh;
+	bottom: 0; left: 0; right: 0;
+	padding: 0 5vh;
 	font-size: 20vh;
 	color: white;
 	background-color: rgba(128, 128, 128, 0.58);
@@ -60,6 +67,59 @@ html, body {
 	
 	padding: 10vh;
 	box-sizing: border-box;
+}
+
+// Page animations
+.pt-perspective {
+	position: relative;
+	width: 100%;
+	height: 100%;
+	perspective: 1200px;
+	transform-style: preserve-3d;
+}
+
+.pt-page {
+	width: 100%;
+	height: 100%;
+	position: absolute;
+	top: 0;
+	left: 0;
+	visibility: hidden;
+	overflow: hidden;
+	backface-visibility: hidden;
+	transform: translate3d(0, 0, 0);
+}
+
+.pt-page-current {
+	visibility: visible;
+}
+.pt-page-ontop {
+	z-index: 999;
+}
+.pt-page-moveToTopFade {
+	-webkit-animation: moveToTopFade .7s ease both;
+	animation: moveToTopFade .7s ease both;
+}
+
+.pt-page-moveFromBottomFade {
+	-webkit-animation: moveFromBottomFade .7s ease both;
+	animation: moveFromBottomFade .7s ease both;
+}
+
+@-webkit-keyframes moveToTopFade {
+	from { }
+	to { opacity: 0.3; -webkit-transform: translateY(-100%); }
+}
+@keyframes moveToTopFade {
+	from { }
+	to { opacity: 0.3; -webkit-transform: translateY(-100%); transform: translateY(-100%); }
+}
+
+@-webkit-keyframes moveFromBottomFade {
+	from { opacity: 0.3; -webkit-transform: translateY(100%); }
+}
+@keyframes moveFromBottomFade {
+	from { opacity: 0.3; -webkit-transform: translateY(100%); transform: translateY(100%); }
 }
 
 /* XXX downloaded manually to be independent from inet access
